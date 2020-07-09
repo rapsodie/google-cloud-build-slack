@@ -7,38 +7,35 @@ module.exports.webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
 module.exports.status = config.GC_SLACK_STATUS;
 
 module.exports.getGithubCommit = async (build, octokit) => {
-  try {
-    const cloudSourceRepo = build.source.repoSource.repoName;
-    const { commitSha } = build.sourceProvenance.resolvedRepoSource;
+     try {
+        const githubRepo   = build.substitutions.REPO_NAME;
+        const githubBranch = build.substitutions.BRANCH_NAME;
+        const commitSha    = build.substitutions.COMMIT_SHA;
 
-    // format github_ownerName_repoName
-    const [, githubOwner, githubRepo] = cloudSourceRepo.split('_');
+        const githubCommit = await octokit.git.getCommit({
+            commit_sha: commitSha,
+            owner: 'Rapsodie',
+            repo: githubRepo,
+        });
 
-    // get github commit
-    const githubCommit = await octokit.git.getCommit({
-      commit_sha: commitSha,
-      owner: githubOwner,
-      repo: githubRepo,
-    });
-
-    // return github commit
-    return githubCommit;
-  } catch (err) {
-    return err;
-  }
+        return githubCommit;
+    } catch (err) {
+        return err;
+    }
 };
 
 // subscribe is the main function called by GCF.
 module.exports.subscribe = async (event) => {
   try {
-    const token = process.env.GITHUB_TOKEN;
+    const token = process.env.GITHUB_TOKEN || config.GITHUB_TOKEN;
     const octokit = token && new Octokit({
       auth: `token ${token}`,
     });
     const build = module.exports.eventToBuild(event.data);
 
     // Skip if the current status is not in the status list.
-    const status = module.exports.status || ['SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT'];
+    const status = module.exports.status || ['QUEUED', 'WORKING', 'SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT'];
+
     if (status.indexOf(build.status) === -1) {
       return;
     }

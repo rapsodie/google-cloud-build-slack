@@ -1,1 +1,5 @@
-{"SLACK_WEBHOOK_URL":"https://hooks.slack.com/services/XXX"}
+{
+  "SLACK_WEBHOOK_URL" : "",
+  "GC_SLACK_STATUS": ["WORKING", "QUEUED", "SUCCESS", "FAILURE", "TIMEOUT", "INTERNAL_ERROR"],
+  "GITHUB_TOKEN": ""
+}

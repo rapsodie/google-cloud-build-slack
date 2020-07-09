@@ -5,7 +5,7 @@ gcloud config set project $PROJECT_ID
 
 # Create config file with SLACK_WEBHOOK_URL and GC_SLACK_STATUS.
 if [ -z "$GC_SLACK_STATUS" ]; then
-  export GC_SLACK_STATUS="SUCCESS FAILURE TIMEOUT INTERNAL_ERROR"
+  export GC_SLACK_STATUS="WORKING QUEUED SUCCESS FAILURE TIMEOUT INTERNAL_ERROR"
 fi
 arr=(`echo ${GC_SLACK_STATUS}`);
 json_array() {
@@ -21,7 +21,8 @@ json_array() {
 cat <<EOF > config.json
 {
   "SLACK_WEBHOOK_URL" : "$SLACK_WEBHOOK_URL",
-  "GC_SLACK_STATUS": $(json_array "${arr[@]}")
+  "GC_SLACK_STATUS": $(json_array "${arr[@]}"),
+  "GITHUB_TOKEN": "$GITHUB_TOKEN"
 }
 EOF
 
@@ -42,6 +43,6 @@ if [ -z "$FUNCTION_NAME" ]; then
   export FUNCTION_NAME="cloudBuildSlackIntegration"
 fi
 if [ -z "$REGION" ]; then
-  export REGION="us-central1"
+  export REGION="europe-west1"
 fi
 gcloud beta functions deploy $FUNCTION_NAME --stage-bucket $BUCKET_NAME --trigger-topic cloud-builds --entry-point subscribe --region $REGION --runtime nodejs8
